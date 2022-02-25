@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
-using System.IO;
-using Microsoft.Extensions.Options;
 
 namespace SwiftClient.AspNetCore.Demo.Controllers
 {
@@ -16,18 +14,18 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
         string metaFileName = "Filename";
         string metaContentType = "Contenttype";
 
-        private readonly ISwiftClient _swiftService;
+        private readonly ISwiftService _swiftService;
 
-        public HomeController(ISwiftClient swiftClient)
+        public HomeController(ISwiftService swiftService)
         {
-            _swiftService = swiftClient;
+            _swiftService = swiftService;
         }
 
         public async Task<IActionResult> Index()
         {
             var viewModel = new PageViewModel();
 
-            var authData = await _swiftService.Authenticate();
+            var authData = await _swiftService.AuthenticateAsync();
 
             if (authData != null)
             {
@@ -56,7 +54,7 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
                     {
                         await fileStream.CopyToAsync(memoryStream);
 
-                        var resp = await _swiftService.PutObjectChunk(containerTempId, fileName, memoryStream.ToArray(), segment);
+                        var resp = await _swiftService.PutObjectChunkAsync(containerTempId, fileName, memoryStream.ToArray(), segment);
 
                         return new JsonResult(new
                         {
@@ -79,17 +77,17 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
         public async Task<IActionResult> UploadDone(int segmentsCount, string fileName, string contentType)
         {
             // use manifest to merge chunks
-            await _swiftService.PutManifest(containerTempId, fileName);
+            await _swiftService.PutManifestAsync(containerTempId, fileName);
 
             // copy chunks to new file and set some meta data info about the file (filename, contentype)
-            await _swiftService.CopyObject(containerTempId, fileName, containerDemoId, fileName, new Dictionary<string, string>
+            await _swiftService.CopyObjectAsync(containerTempId, fileName, containerDemoId, fileName, new Dictionary<string, string>
             {
                 { $"X-Object-Meta-{metaFileName}", fileName },
                 { $"X-Object-Meta-{metaContentType}", contentType }
             });
 
             // cleanup temp
-            await _swiftService.DeleteContainerWithContents(containerTempId);
+            await _swiftService.DeleteContainerWithContentsAsync(containerTempId);
 
             return new JsonResult(new
             {
@@ -99,7 +97,7 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
 
         public async Task<IActionResult> PlayVideo(string containerId, string objectId)
         {
-            var headObject = await _swiftService.HeadObject(containerId, objectId);
+            var headObject = await _swiftService.HeadObjectAsync(containerId, objectId);
 
             if (headObject.IsSuccess)
             {
@@ -108,7 +106,7 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
 
                 var stream = new BufferedHTTPStream((start, end) =>
                 {
-                    using (var response = _swiftService.GetObjectRange(containerId, objectId, start, end).Result)
+                    using (var response = _swiftService.GetObjectRangeAsync(containerId, objectId, start, end).Result)
                     {
                         var ms = new MemoryStream();
 
@@ -129,7 +127,7 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
 
         public async Task<IActionResult> DownloadFile(string containerId, string objectId)
         {
-            var headObject = await _swiftService.HeadObject(containerId, objectId);
+            var headObject = await _swiftService.HeadObjectAsync(containerId, objectId);
 
             if (headObject.IsSuccess && headObject.ContentLength > 0)
             {
@@ -140,7 +138,7 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
 
                 var stream = new BufferedHTTPStream((start, end) =>
                 {
-                    using (var response = _swiftService.GetObjectRange(containerId, objectId, start, end).Result)
+                    using (var response = _swiftService.GetObjectRangeAsync(containerId, objectId, start, end).Result)
                     {
                         var ms = new MemoryStream();
 
@@ -169,7 +167,7 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
         {
             var tree = new TreeViewModel();
 
-            var accountData = await _swiftService.GetAccount();
+            var accountData = await _swiftService.GetAccountAsync();
 
             if (accountData.IsSuccess)
             {
@@ -196,7 +194,7 @@ namespace SwiftClient.AspNetCore.Demo.Controllers
 
         private async Task<TreeViewModel> GetContainerBranch(string containerId)
         {
-            var containerData = await _swiftService.GetContainer(containerId);
+            var containerData = await _swiftService.GetContainerAsync(containerId);
 
             TreeViewModel result = new TreeViewModel
             {

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SwiftClient.Cli
 {
@@ -12,7 +8,7 @@ namespace SwiftClient.Cli
         {
             if (string.IsNullOrEmpty(options.Object))
             {
-                var response = client.DeleteContainerWithContents(options.Container, options.Limit).Result;
+                var response = client.DeleteContainerWithContentsAsync(options.Container, options.Limit).Result;
                 if (response.IsSuccess)
                 {
                     Console.WriteLine($"{options.Container} deleted");
@@ -25,7 +21,7 @@ namespace SwiftClient.Cli
             }
             else
             {
-                var response = client.DeleteObject(options.Container, options.Object).Result;
+                var response = client.DeleteObjectAsync(options.Container, options.Object).Result;
                 if (response.IsSuccess)
                 {
                     Console.WriteLine($"{options.Container}/{options.Object} deleted");

@@ -58,7 +58,7 @@ namespace SwiftClient.Cli
             var response = new SwiftBaseResponse();
             var fileName = Path.GetFileName(options.File);
 
-            response = client.PutContainer(options.Container).Result;
+            response = client.PutContainerAsync(options.Container).Result;
 
             if (!response.IsSuccess)
             {
@@ -77,7 +77,7 @@ namespace SwiftClient.Cli
                     { $"X-Object-Meta-Contenttype", MimeTypeMap.GetMimeType(Path.GetExtension(options.File)) }
                 };
 
-                response = client.PutLargeObject(options.Container, options.Object, stream, headers, (chunk, bytesRead) =>
+                response = client.PutLargeObjectAsync(options.Container, options.Object, stream, headers, (chunk, bytesRead) =>
                 {
                     if (showProgress)
                         Console.Write($"\rUploaded {((chunk * options.BufferSize).Megabytes() + bytesRead.Bytes()).Humanize("MB")}");

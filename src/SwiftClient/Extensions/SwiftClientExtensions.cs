@@ -10,14 +10,14 @@ namespace SwiftClient
 {
     public static class ClientExtensions
     {
-        public static async Task<SwiftBaseResponse> PutLargeObject(this ISwiftClient client, string containerId, string objectId, Stream stream, Dictionary<string, string> headers = null, Action<long, long> progress = null, long bufferSize = 1000000, bool checkIntegrity = false)
+        public static async Task<SwiftBaseResponse> PutLargeObjectAsync(this ISwiftClient client, string containerId, string objectId, Stream stream, Dictionary<string, string> headers = null, Action<long, long> progress = null, long bufferSize = 1000000, bool checkIntegrity = false)
         {
             SwiftBaseResponse response = null;
             byte[] buffer = new byte[bufferSize];
             string containerTemp = "tmp_" + Guid.NewGuid().ToString("N");
             int bytesRead, chunk = 0;
 
-            response = await client.PutContainer(containerTemp).ConfigureAwait(false);
+            response = await client.PutContainerAsync(containerTemp).ConfigureAwait(false);
 
             if (!response.IsSuccess)
             {
@@ -29,7 +29,7 @@ namespace SwiftClient
                 using (MemoryStream tmpStream = new MemoryStream())
                 {
                     tmpStream.Write(buffer, 0, bytesRead);
-                    response = await client.PutObjectChunk(containerTemp, objectId, tmpStream.ToArray(), chunk).ConfigureAwait(false);
+                    response = await client.PutObjectChunkAsync(containerTemp, objectId, tmpStream.ToArray(), chunk).ConfigureAwait(false);
                 }
 
                 progress?.Invoke(chunk, bytesRead);
@@ -37,7 +37,7 @@ namespace SwiftClient
                 if (!response.IsSuccess)
                 {
                     // cleanup
-                    await client.DeleteContainerWithContents(containerTemp).ConfigureAwait(false);
+                    await client.DeleteContainerWithContentsAsync(containerTemp).ConfigureAwait(false);
 
                     return response;
                 }
@@ -59,46 +59,46 @@ namespace SwiftClient
 
 
             // use manifest to merge chunks
-            response = await client.PutManifest(containerTemp, objectId, integrityHeaders).ConfigureAwait(false);
+            response = await client.PutManifestAsync(containerTemp, objectId, integrityHeaders).ConfigureAwait(false);
 
             if (!response.IsSuccess)
             {
                 // cleanup
-                await client.DeleteContainerWithContents(containerTemp).ConfigureAwait(false);
+                await client.DeleteContainerWithContentsAsync(containerTemp).ConfigureAwait(false);
 
                 return response;
             }
 
             // copy chunks to new file
-            response = await client.CopyObject(containerTemp, objectId, containerId, objectId, headers).ConfigureAwait(false);
+            response = await client.CopyObjectAsync(containerTemp, objectId, containerId, objectId, headers).ConfigureAwait(false);
 
             if (!response.IsSuccess)
             {
                 // cleanup
-                await client.DeleteContainerWithContents(containerTemp).ConfigureAwait(false);
+                await client.DeleteContainerWithContentsAsync(containerTemp).ConfigureAwait(false);
 
                 return response;
             }
 
             // cleanup temp
-            return await client.DeleteContainerWithContents(containerTemp).ConfigureAwait(false);
+            return await client.DeleteContainerWithContentsAsync(containerTemp).ConfigureAwait(false);
         }
 
-        public static async Task<SwiftBaseResponse> DeleteContainerWithContents(this ISwiftClient client, string containerId, int limit = 1000)
+        public static async Task<SwiftBaseResponse> DeleteContainerWithContentsAsync(this ISwiftClient client, string containerId, int limit = 1000)
         {
             // delete all container objects
-            var deleteRsp = await client.DeleteContainerContents(containerId, limit).ConfigureAwait(false);
+            var deleteRsp = await client.DeleteContainerContentsAsync(containerId, limit).ConfigureAwait(false);
 
             if (deleteRsp.IsSuccess)
             {
                 //delete container
-                return await client.DeleteContainer(containerId).ConfigureAwait(false);
+                return await client.DeleteContainerAsync(containerId).ConfigureAwait(false);
             }
 
             return deleteRsp;
         }
 
-        public static async Task<SwiftBaseResponse> DeleteContainerContents(this ISwiftClient client, string containerId, int limit = 1000)
+        public static async Task<SwiftBaseResponse> DeleteContainerContentsAsync(this ISwiftClient client, string containerId, int limit = 1000)
         {
             var limitHeaderKey = "limit";
             var markerHeaderKey = "marker";
@@ -125,7 +125,7 @@ namespace SwiftClient
                 }
 
                 // get objects
-                var infoRsp = await client.GetContainer(containerId, null, queryParams).ConfigureAwait(false);
+                var infoRsp = await client.GetContainerAsync(containerId, null, queryParams).ConfigureAwait(false);
 
                 // no more objects => break
                 if (infoRsp.ObjectsCount == 0) return infoRsp;
@@ -137,7 +137,7 @@ namespace SwiftClient
                     var count = infoRsp.Objects.Count;
 
                     // delete them
-                    var deleteRsp = await client.DeleteObjects(objectIds).ConfigureAwait(false);
+                    var deleteRsp = await client.DeleteObjectsAsync(objectIds).ConfigureAwait(false);
 
                     if (!deleteRsp.IsSuccess) return deleteRsp;
 
