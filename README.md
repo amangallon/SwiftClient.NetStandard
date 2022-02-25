@@ -1,6 +1,5 @@
 # OpenStack Swift client for .NET based on NetStandard 2.0
 
-<!-- [![Build status](https://ci.appveyor.com/api/projects/status/77ts9n1a6w5xnrjw?svg=true)](https://ci.appveyor.com/project/stefanprodan/swiftclient) -->
 [![NuGet version](https://img.shields.io/nuget/vpre/SwiftClient.NetStandard.svg)](https://www.nuget.org/packages/SwiftClient.NetStandard)
 
 ***SwiftClient*** is an async HTTP wrapper over OpenStack Swift REST API and follows the [Object Storage API Reference](http://developer.openstack.org/api-ref-objectstorage-v1.html).
