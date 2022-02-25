@@ -7,10 +7,10 @@
     <AssemblyName>SwiftClient.AspNetCore</AssemblyName>
     <PackageId>SwiftClient.AspNetCore.NetStandard</PackageId>
     <PackageTags>aspnetcore;OpenStack;Swift</PackageTags>
-    <PackageProjectUrl>https://github.com/amangallon/AM.SwiftClient</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/amangallon/SwiftClient.NetStandard</PackageProjectUrl>
     <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/amangallon/AM.SwiftClient</RepositoryUrl>
+    <RepositoryUrl>https://github.com/amangallon/SwiftClient.NetStandard</RepositoryUrl>
     <NetStandardImplicitPackageVersion>2.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
