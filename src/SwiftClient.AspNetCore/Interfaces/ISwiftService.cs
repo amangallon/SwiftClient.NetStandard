@@ -6,6 +6,11 @@ namespace SwiftClient.AspNetCore
 {
     public interface ISwiftService: ISwiftClient
     {
+        /// <summary>
+        /// Gets the swift service options
+        /// </summary>
+        SwiftServiceOptions Options { get; }
+
         /// <summary> 
         /// Deletes an object in the default container
         /// </summary>
